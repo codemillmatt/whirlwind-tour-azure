@@ -1,0 +1,47 @@
+﻿@page "/tracking/{OrderId:int}"
+
+@using PizzaConf.Models
+@using PizzaConf.Web.Data
+@using Microsoft.AspNetCore.SignalR.Client
+
+@inject IConfiguration configuration
+
+<h3>Where's My Order?</h3>
+
+<img src="@OrderStatusUrl" class="rounded-circle" style="max-height:200px; max-width:200px;"/>
+<div class="mt-3">@OrderStatus</div>
+
+@code {
+    [Parameter]
+    public int OrderId { get; set; }
+
+    public string? OrderStatusUrl { get; set; } = "https://cdne-qd4im2wjogoiq.azureedge.net/media/pizza1.jpg";
+    public string? OrderStatus { get; set; } = "Waiting for transmission...";
+
+    HubConnection? hubConnection;
+
+    string cdnUrl;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cdnUrl = configuration.GetValue<string>("cdnUrl");
+
+        if (hubConnection != null && hubConnection.State == HubConnectionState.Connected)
+            await hubConnection.StopAsync();
+
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(configuration["trackingUrl"])
+            .WithAutomaticReconnect()
+            .Build();
+
+        hubConnection.On<TrackingMessage>("newMessage", (obj) =>
+        {
+            OrderStatusUrl = $"{cdnUrl}/media/{obj.StatusUrl}";
+            OrderStatus = obj.Status;
+            InvokeAsync(() => StateHasChanged());
+            //StateHasChanged();
+        });
+
+        await hubConnection.StartAsync();
+    } 
+}

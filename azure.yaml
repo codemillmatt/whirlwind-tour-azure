@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+# Name of the application.
+name: pizza-whirlwind
+services:
+  checkout-api:
+    language: csharp
+    project: src/PizzaConf.Checkout.Api
+    host: appservice
+  menu-api:
+    language: csharp
+    project: src/PizzaConf.Menu.Api
+    host: appservice
+  front-end:
+    language: csharp
+    project: src/PizzaConf.Web
+    host: appservice
+  tracker-function:
+    language: csharp
+    project: src/PizzaConf.DeliveryTracker
+    host: function
